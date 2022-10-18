@@ -1,0 +1,18 @@
+name: Sync Staging branch with master branch
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  rebase-staging-against-master:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Rebase 'staging' branch against master
+        uses: Joao208/resync-branch@1.5.0
+        with:
+          PERSONAL_TOKEN: ${{ github.token }}
+          BRANCH_NAME: staging
+          DEFAULT_BRANCH: master
