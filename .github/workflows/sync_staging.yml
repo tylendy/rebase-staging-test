@@ -16,17 +16,18 @@ jobs:
           fetch-depth: 0
 
       - name: Rebase staging on master
+        id: rebase-staging
         run: |
           git checkout staging
-          git rebase master
+          if ! git rebase master; then
+            git rebase --abort
+            echo "Merge conflicts detected in the staging branch."
+            exit 1
+          fi
           git push origin staging
 
-      - name: Detect merge conflicts
-        id: conflict-check
-        run: git diff --name-only --diff-filter=U
-
       - name: Send Discord notification on conflicts
-        if: steps.conflict-check.outputs.returncode == '0'
+        if: failure()
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
