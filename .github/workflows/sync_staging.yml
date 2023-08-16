@@ -1,18 +1,34 @@
-name: Sync Staging branch with master branch
+name: Rebase Staging on Master and Notify Discord
+
 on:
   push:
     branches:
       - master
 
 jobs:
-  rebase-staging-against-master:
+  rebase_and_notify_discord:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
 
-      - name: Rebase 'staging' branch against master
-        uses: Joao208/resync-branch@1.5.0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
         with:
-          PERSONAL_TOKEN: ${{ github.token }}
-          BRANCH_NAME: staging
-          DEFAULT_BRANCH: master
+          fetch-depth: 0
+
+      - name: Rebase staging on master
+        run: |
+          git checkout staging
+          git rebase master
+          git push origin staging
+
+      - name: Detect merge conflicts
+        id: conflict-check
+        run: git diff --name-only --diff-filter=U
+
+      - name: Send Discord notification on conflicts
+        if: steps.conflict-check.outputs.returncode == '0'
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: "Merge conflicts detected in the staging branch. Please review and resolve."
