@@ -26,10 +26,10 @@ jobs:
           fi
           git push origin staging
 
-      - name: Send Discord notification on conflicts
+      - name: Send Discord notification
         if: failure()
-        uses: appleboy/discord-action@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
         with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: "Merge conflicts detected in the staging branch. Please review and resolve."
+          args: 'Yo dawg, fix your conflicts'
